@@ -19,7 +19,7 @@ while True:
     msg, addr = serverSocket.recvfrom(1024)
     msg = msg.upper()
 
-    if rand < 4:
+    if rand < 4:#suimulate the situation of losting package
         continue
 
     serverSocket.sendto(msg, addr)
