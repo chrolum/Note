@@ -44,7 +44,7 @@
 . = VEC_KBD
         BR(I_Kbd)       // on Keyboard interrupt
 . = VEC_MOUSE
-        BR(I_BadInt)    // on mouse interrupt
+        BR(I_Ms)    // on mouse interrupt
 
 // The following macro is the first instruction to be entered for each
 // asynchronous I/O interrupt handler.   It adjusts XP (the interrupted
@@ -230,6 +230,21 @@ HexPrtH:
         LD(UserMState,r0)               // Load user R0
         CALL(KHexPrt)                   // Print it out 
         BR(I_Rtn)                       // And return to user.
+
+//////////////////////////////////////////////////////////////////////////////
+/// mouse handling
+//////////////////////////////////////////////////////////////////////////////
+
+Mouse_State: LONG(0)
+
+I_Ms:   ENTER_INTERRUPT()
+        ST(r0, UserMState)
+        CLICK()                          // Get coordinate in r0, higer 16-bits is x, lower is y
+        ST(r0, Mouse_State)
+        LD(UserMState, r0)
+        .breakpoint
+        JMP(XP)
+
 
 //////////////////////////////////////////////////////////////////////////////
 /// Timesharing: 3-process round-robin scheduler
