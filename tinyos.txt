@@ -185,6 +185,7 @@ SVCTbl: UUO(HaltH)              // SVC(0): User-mode HALT instruction
         UUO(WaitH)              // SVC(5): Wait(S) ,,, S in R3
         UUO(SignalH)            // SVC(6): Signal(S), S in R3
         UUO(YieldH)             // SVC(7): Yield()
+        UUO(Mouse)              // SVC(8): Mouse()
 
 ////////////////////////////////////////////////////////////////////////
 // Keyboard handling
@@ -242,8 +243,16 @@ I_Ms:   ENTER_INTERRUPT()
         CLICK()                          // Get coordinate in r0, higer 16-bits is x, lower is y
         ST(r0, Mouse_State)
         LD(UserMState, r0)
-        .breakpoint
         JMP(XP)
+
+Mouse:
+        LD(Mouse_State, r0)             // get the coordinate infomation
+        BEQ(r0, I_Wait)                 // wait untill get a mouse click
+        
+        LD(Mouse_State, r0)             // get click information
+        ST(r0, UserMState)              // return to user process
+        ST(r31, Mouse_State)            // clear mouse Buffer
+        BR(I_Rtn)
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -523,6 +532,7 @@ WrEnd:
 .macro HexPrt() SVC(4)          // Hex Print the value in R0.
 
 .macro Yield()  SVC(7)          // Give up remaining quantum
+.macro Mouse()  SVC(8)          // 
 
 /// Semaphore macros.
 /// Wait(S) waits on semaphore S; Signal(S) signals on S.
@@ -728,6 +738,7 @@ P1Stack: STORAGE(256)           // Stack for process 2.
 ////////////////////////////////////////////////////////////////////////
 
 P2Start:
+        Mouse() // temp test
         LD(Count3, r0)          // Another quantum, incr count3.
         ADDC(r0,1,r0)
         ST(r0,Count3)
